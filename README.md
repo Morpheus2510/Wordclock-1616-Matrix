@@ -1,135 +1,73 @@
-# Wordclock-1616-Matrix
-Wordclock  for 16x16 led matrix esp32
-Word Clock mit ESP32 und Neopixel Matrix
-Einleitung
-Diese Anleitung beschreibt die Einrichtung und Verwendung einer Wortuhr basierend auf einem ESP32 Mikrocontroller und einer Neopixel LED-Matrix. Die Uhr zeigt die aktuelle Uhrzeit in Worten an und bietet verschiedene Konfigurationsmöglichkeiten über ein Webinterface.
+Dieses Projekt ist eine Wort-Uhr (WordClock) mit einer 16×16-LED-Matrix auf Basis eines ESP32 und einer DS3231-RTC. Über ein Web-Interface können WLAN-Einstellungen, Firmware-Updates, Farbeinstellungen und mehr konfiguriert werden.
 
 Features
-Anzeigen der Uhrzeit in Worten auf einer 16x16 LED-Matrix.
-Webbasiertes Konfigurationsportal für einfache Einstellungen.
-Online- und Offline-Modus: Verwendung von NTP für genaue Zeit oder manuelle Zeiteinstellung.
-Farb- und Helligkeitsanpassung der Anzeige.
-Regenbogenmodus für eine dynamische Farbdarstellung.
-Tagespläne zur Steuerung der Helligkeit und Betriebszeiten an Wochentagen.
-Speicherung von Einstellungen im nicht-flüchtigen Speicher (Preferences).
-Hardwareanforderungen
-ESP32 Entwicklungsboard
-Neopixel (WS2812B) 16x16 LED-Matrix (insgesamt 256 LEDs)
-5V Netzteil mit ausreichender Stromstärke (mindestens 10A empfohlen)
-Verkabelung zur Verbindung des ESP32 mit der LED-Matrix:
-Datenleitung von Pin 32 des ESP32 zum Data-In der LED-Matrix
-Gemeinsame Masseverbindung zwischen ESP32 und LED-Matrix
-Softwareanforderungen
-Arduino IDE (empfohlen Version 1.8.13 oder höher)
-ESP32 Boardunterstützung in der Arduino IDE installiert
-Benötigte Bibliotheken:
+16×16-LED-Matrix (NeoPixel / WS2812b)
+DS3231 RTC für genaue Zeitmessung (auch offline).
+WLAN-Konfiguration (entweder DHCP oder statische IP).
+Web-Interface zum Einstellen von:
+Farbe (RGB-Farbwahl)
+Helligkeit
+Regenbogenmodus (falls gewünscht)
+Zeit-Offset (Zeitzonen-Anpassung)
+Tagespläne (Dimmen oder Ausschalten nach Zeitplan)
+Firmware-Update (OTA) via HTTP.
+Access Point-Modus, falls kein WLAN bekannt ist.
+OTA-Update (Over-the-Air) über das Web-Interface auf /update.
+Aufbau & Verkabelung
+ESP32-Modul, z. B. ein ESP32-DevKitC.
+DS3231-RTC-Modul an I2C (SDA/SCL).
+LED-Streifen oder 16×16-Matrix am Datenpin (in diesem Code Pin 32).
+Achte darauf, dass die 5V/3.3V-Versorgung je nach LED-Anzahl ausreichend dimensioniert ist. Die DS3231 wird in der Regel mit 3.3V oder 5V versorgt (bitte Datenblatt beachten).
 
-WiFi.h
-WebServer.h
-WiFiUdp.h
-NeoPixelBrightnessBus.h
-time.h
-Preferences.h
-Aufbauanleitung
-Verkabelung herstellen:
+Erforderliche Bibliotheken
+NeoPixelBrightnessBus (für die LED-Ansteuerung)
+RTClib (Adafruit) für die DS3231
+Preferences (ESP32-Standard)
+ArduinoOTA (ESP32-Standard)
+HTTPClient & HTTPUpdate (für Online-Updates)
+In der Arduino-IDE kannst du diese über den Bibliotheksverwalter installieren.
 
-Verbinde den Datenpin DATA_PIN (standardmäßig Pin 32) des ESP32 mit dem Data-In der LED-Matrix.
-Stelle sicher, dass die Masse (GND) des ESP32 mit der Masse der LED-Matrix und dem Netzteil verbunden ist.
-Schließe die 5V Spannungsversorgung an die LED-Matrix an.
-Achtung: Verbinde die 5V nicht direkt mit dem ESP32, da dieser mit 3,3V arbeitet.
-Stromversorgung:
+Installation
+Code herunterladen:
+Lade das Projekt als ZIP herunter oder klone das Repo.
+Öffne die .ino-Datei in der Arduino-IDE oder PlatformIO.
+Bibliotheken installieren:
+Stelle sicher, dass du oben genannte Bibliotheken installiert hast.
+Anpassen (optional):
+Falls du einen anderen Daten-Pin (für LEDs) nutzt, passe DATA_PIN an.
+Wenn du eine andere LED-Anzahl nutzt, ändere NUM_LEDS.
+Für eine andere Matrix-Größe die MATRIX_WIDTH / MATRIX_HEIGHT anpassen.
+Upload:
+Schließe deinen ESP32 an und wähle den richtigen Port in der Arduino-IDE.
+Drücke Upload (Strg + U).
+Beim ersten Start erstellt der Sketch ein WLAN-Access-Point namens WordClockAP mit Passwort password123. Du kannst dich damit verbinden und anschließend im Browser http://192.168.4.1 aufrufen, um die Uhr zu konfigurieren.
 
-Schließe ein ausreichend dimensioniertes Netzteil an, um die LED-Matrix mit Strom zu versorgen.
-Der ESP32 kann separat über USB oder ebenfalls über das Netzteil (unter Beachtung der Spannung) versorgt werden.
-Installationsanleitung
-Arduino IDE vorbereiten:
-
-Stelle sicher, dass die ESP32 Boardunterstützung installiert ist.
-Installiere die benötigten Bibliotheken über den Bibliotheksmanager oder manuell.
-Code in die Arduino IDE laden:
-
-Kopiere den bereitgestellten Quellcode in ein neues Sketch in der Arduino IDE.
-Anpassungen im Code (falls erforderlich):
-
-Überprüfe die Pin-Definition für DATA_PIN und passe sie gegebenenfalls an.
-Passe die SSID und das Passwort für den Access Point in der Funktion startAccessPoint() an:
-cpp
+Web-Interface
+http://<IP-Adresse>/ – Hauptseite, zeigt Konfigurationslinks.
+/wifi – WLAN-Konfiguration (SSID/Passwort).
+/configure_main – Farbe, Helligkeit, Regenbogen.
+/diagnose – Diagnose-Infos (z. B. Uhrzeit, WLAN-Status, RTC-Temp).
+/update – OTA-Firmware-Update.
+Zeigt die aktuell hinterlegte Firmware-URL an (Standard ist dein GitHub-Link).
+Klick auf „Jetzt Update einspielen“ lädt eine neue Firmware vom Link hoch.
+Firmware-Update (OTA)
+Gehe auf http://<IP>/update.
+Die Seite zeigt eine Formularzeile Firmware-URL (Standard:
+bash
 Code kopieren
-WiFi.softAP("WordClockAP", "dein_sicheres_passwort", 1, false, 10);
-Hinweis: Das Passwort muss mindestens 8 Zeichen lang sein.
-Code kompilieren und auf den ESP32 hochladen:
+https://github.com/Morpheus2510/Wordclock-1616-Matrix/releases/download/v1_9_9/WordClock_v1_9_9.ino.bin
+).
+URL speichern – Du kannst die URL ändern und dann speichern, um eine andere Version einzuspielen.
+„Jetzt Update einspielen“ – startet das OTA-Update vom Server.
+Nach erfolgreichem Update startet der ESP32 automatisch neu.
 
-Wähle das richtige ESP32 Board in der Arduino IDE aus.
-Kompiliere das Sketch und lade es auf den ESP32 hoch.
-Bedienungsanleitung
-Erstinbetriebnahme
-Access Point verbinden:
-
-Nach dem Start erstellt der ESP32 einen Wi-Fi Access Point mit dem Namen WordClockAP.
-Verbinde dich mit diesem Netzwerk. Das standardmäßige Passwort ist dein_sicheres_passwort (wie im Code festgelegt).
-Webinterface aufrufen:
-
-Öffne einen Webbrowser und navigiere zur IP-Adresse des Access Points, in der Regel 192.168.4.1.
-WLAN konfigurieren:
-
-Navigiere im Webinterface zu den Wi-Fi Einstellungen.
-Wähle dein Heimnetzwerk aus der Liste der verfügbaren Netzwerke aus und gib das Passwort ein.
-Speichere die Einstellungen. Der ESP32 versucht nun, sich mit deinem Heimnetzwerk zu verbinden.
-Webinterface im Heimnetzwerk:
-
-Nachdem der ESP32 mit deinem WLAN verbunden ist, erhält er eine IP-Adresse in deinem Heimnetzwerk.
-Finde die IP-Adresse heraus (wird im seriellen Monitor angezeigt oder im Router) und rufe das Webinterface erneut auf.
-Funktionen des Webinterfaces
-Startseite:
-
-Zeigt die aktuelle Uhrzeit, den Verbindungsstatus und die IP-Adresse an.
-Bietet Links zu den verschiedenen Konfigurationsseiten.
-Wi-Fi Einstellungen:
-
-Ermöglicht das Verbinden mit einem WLAN-Netzwerk.
-Zeigt den Verbindungsstatus an.
-Manuelle Zeit einstellen:
-
-Ermöglicht das Setzen der Uhrzeit im Offline-Modus.
-Nützlich, wenn keine Internetverbindung für NTP vorhanden ist.
-Modus wechseln:
-
-Umschalten zwischen Online-Modus (NTP-Zeit) und Offline-Modus (manuelle Zeit).
-Zeit-Offset einstellen:
-
-Einstellen eines Zeitversatzes in Minuten (z.B. für Sommerzeitkorrekturen).
-Tagespläne einstellen:
-
-Konfiguration von Ein- und Ausschaltzeiten für jeden Wochentag.
-Option zum Dimmen statt vollständigem Ausschalten.
-Hauptkonfiguration:
-
-Anpassung der Farbe und Helligkeit der LEDs.
-Aktivierung des Regenbogenmodus für eine dynamische Farbdarstellung.
-Anpassungsmöglichkeiten
-Farbe und Helligkeit
-Farbe: Wähle eine beliebige Farbe über den Farbwähler im Webinterface.
-Helligkeit: Stelle die Helligkeit der LEDs zwischen 0 und 255 ein.
-Regenbogenmodus
-Aktiviert einen Modus, in dem die Farben der Worte in Regenbogenfarben angezeigt werden.
-Jede Reihe der LED-Matrix hat eine eigene Farbe, die sich kontinuierlich ändert.
+Zeiteinstellung
+Das System versucht zuerst NTP (wenn WLAN vorhanden).
+Falls kein WLAN oder kein NTP, wird die DS3231 ausgelesen.
+Wenn die DS3231 einen Stromausfall hatte, wird sie aktualisiert, sobald wieder NTP verfügbar ist.
 Tagespläne
-Start- und Endzeiten: Lege fest, wann die Uhr aktiv sein soll.
-Dimmed-Modus: Wähle, ob die Uhr in der inaktiven Zeit gedimmt oder komplett ausgeschaltet sein soll.
-Troubleshooting
-Der Access Point erscheint als ungesichert:
+Unter http://<IP>/configure_day_schedules kannst du pro Wochentag eine Start- und Endzeit definieren sowie wählen, ob in dieser Zeit gedimmt oder ausgeschaltet werden soll.
 
-Stelle sicher, dass das Passwort für den Access Point mindestens 8 Zeichen lang ist.
-Überprüfe die Funktion startAccessPoint() und passe das Passwort an.
-Keine Verbindung zum WLAN:
-
-Überprüfe die eingegebene SSID und das Passwort im Webinterface.
-Stelle sicher, dass der ESP32 in Reichweite des Routers ist.
-Zeit wird nicht synchronisiert:
-
-Stelle sicher, dass der ESP32 mit dem Internet verbunden ist.
-Überprüfe die NTP-Konfiguration und die Zeitzoneneinstellung.
-LEDs bleiben aus:
-Überprüfe die Stromversorgung der LED-Matrix.
-Stelle sicher, dass die Helligkeit nicht auf 0 gesetzt ist.
-Überprüfe die Tagespläne, ob die Uhr in der aktuellen Zeit aktiv ist.
+Hinweise
+Wenn du bereits einmal eine andere Firmware-URL gespeichert hast, überschreibt die Preferences deinen Standard-Link. Dann musst du entweder die URL manuell ändern oder die Preferences leeren (per /reset).
+Die DS3231-RTC solltest du sicher mit dem ESP32-GND verbinden, und SCL/SDA (Standard: GPIO 22 / GPIO 21) korrekt anschließen.
